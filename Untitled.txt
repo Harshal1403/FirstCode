@@ -1,0 +1,413 @@
+
+
+def non_recursive_fibonacci(n):
+    first=0
+    second=1
+    print(first)
+    print(second)
+    while n-2>0:
+        third=first+second
+        print(third)
+        first=second
+        second=third
+        n-=1
+
+
+
+
+
+def recursive_fibonacci(n):
+    if n<=1:
+        return n
+    else:
+        return recursive_fibonacci(n-1)+recursive_fibonacci(n-2)
+
+if __name__ == "__main__":
+    non_recursive_fibonacci(4)
+    n = 10
+    for i in range (n):
+        print(recursive_fibonacci(i))
+
+
+
+import heapq
+
+class Node:
+    def __init__(self, freq, symbol, left=None, right=None):
+        self.freq = freq
+        self.symbol = symbol
+        self.left = left
+        self.right = right
+        self.huff = ''
+
+    def __lt__(self, nxt):
+        return self.freq < nxt.freq
+
+    def print_nodes(self, val=''):
+        new_val = val + str(self.huff)
+        if self.left:
+            self.left.print_nodes(new_val)
+        if self.right:
+            self.right.print_nodes(new_val)
+        if not self.left and not self.right:
+            print("{} -> {}".format(self.symbol, new_val))
+
+
+if __name__ == "__main__":
+    chars = ['a', 'b', 'c', 'd', 'e', 'f']
+    freq = [5, 9, 12, 13, 16, 45]
+    nodes = []
+
+    # Create a heap of nodes
+    for i in range(len(chars)):
+        heapq.heappush(nodes, Node(freq[i], chars[i]))
+
+    # Build the Huffman Tree
+    while len(nodes) > 1:
+        left = heapq.heappop(nodes)
+        right = heapq.heappop(nodes)
+
+        left.huff = 0
+        right.huff = 1
+
+        # Create new node by combining the two lowest frequency nodes
+        new_node = Node(left.freq + right.freq, left.symbol + right.symbol, left, right)
+        heapq.heappush(nodes, new_node)
+
+    # The root node is the only remaining node
+    root_node = nodes[0]
+    root_node.print_nodes()
+
+
+
+
+def fractional_knapsack():
+    weights=[10,20,30]
+    values=[60,100,120]
+    cap=50
+    res=0
+
+    for pair in sorted(zip(weights,values), key=lambda x:x[1]/x[0],reverse=True):
+        if cap<=0:
+            break
+        if cap < pair[0]:
+            res+=int(cap*(pair[1]/pair[0]))
+            cap=0
+        elif cap>=pair[0]:
+            res+=pair[1]
+            cap-=pair[0]
+        print(res)
+    
+
+if __name__ == "__main__":
+    fractional_knapsack()
+
+
+
+from typing import List
+
+class Solution:
+    def solveNQueens(self,n:int)->List[List[str]]:
+        col=set()
+        pos=set()
+        neg=set()
+        res=[]
+        board=[[" . "]*n for _a in range(n)]
+
+        def backtrack(r):
+            if r==n:
+                copy=["".join(row) for row in board]
+                res.append(copy)
+                return
+
+            for c in range(n):
+                if c in col or (r+c) in pos or (r-c) in neg:
+                    continue
+
+                col.add(c)
+                pos.add(r+c)
+                neg.add(r-c)
+                board[r][c]=" Q "
+
+                backtrack(r+1)
+
+                col.remove(c)
+                pos.remove(r+c)
+                neg.remove(r-c)
+                board[r][c]=" . "
+        backtrack(0)
+        for rows in res:
+            print("\n\nsol\n\n")
+            for row in rows:
+                print(row,"\n")
+
+solution=Solution()
+print(solution.solveNQueens(4))
+
+
+
+def solve_knapsack():
+    val=[50,100,150,200]
+    wt=[8,16,32,40]
+    W=64
+    n=len(val)-1
+
+    def knapsack(W,n):
+        if n<0 or W<=0:
+            return 0;
+        if W<wt[n]:
+            return knapsack(W,n-1)
+        else:
+            return max(
+                val[n]+knapsack(W-wt[n],n-1),
+                knapsack(W,n-1)
+                
+            )
+    print(knapsack(W,n))
+
+solve_knapsack()
+
+
+
+
+
+
+
+
+
+
+
+
+pragma solidity ^0.6.0;
+
+contract banking {
+    // Mapping to store user account balances
+    mapping(address => uint256) public user_account;
+    
+    // Mapping to track if a user account exists
+    mapping(address => bool) public user_exists;
+    
+    // Function to create a new account
+    function create_account() public payable returns (string memory) { 
+        require(user_exists[msg.sender] == false, "Account already created"); 
+        
+        if (msg.value == 0) { 
+            user_account[msg.sender] = 0; 
+            user_exists[msg.sender] = true; 
+            return "Account created"; 
+        } 
+        
+        // Note: This require is redundant and can be removed
+        
+        user_account[msg.sender] = msg.value; 
+        user_exists[msg.sender] = true; 
+        return "Account created"; 
+    } 
+    
+    // Function to deposit Ether into the user's account
+    function deposit() public payable returns (string memory) { 
+        require(user_exists[msg.sender] == true, "Account not created"); 
+        require(msg.value > 0, "Value for deposit is Zero"); 
+        
+        user_account[msg.sender] = user_account[msg.sender] + msg.value; 
+        return "Deposited Successfully"; 
+    } 
+    
+    // Function to withdraw Ether from the user's account
+    function withdraw(uint256 amount) public payable returns (string memory) { 
+        require(user_account[msg.sender] > amount, "Insufficient Balance"); 
+        require(user_exists[msg.sender] == true, "Account not created"); 
+        require(amount > 0, "Amount should be more than zero"); 
+        
+        user_account[msg.sender] = user_account[msg.sender] - amount; 
+        msg.sender.transfer(amount); 
+        return "Withdrawal Successful"; 
+    } 
+    
+    // Function to transfer Ether to another user's account within the contract
+    function transfer(address payable userAddress, uint256 amount) public returns (string memory) { 
+        require(user_account[msg.sender] > amount, "Insufficient balance in Bank account"); 
+        require(user_exists[msg.sender] == true, "Account is not created"); 
+        require(user_exists[userAddress] == true, "Transfer account does not exist"); 
+        require(amount > 0, "Amount should be more than zero"); 
+        
+        user_account[msg.sender] = user_account[msg.sender] - amount; 
+        user_account[userAddress] = user_account[userAddress] + amount; 
+        return "Transfer Successful"; 
+    } 
+    
+    // Function to send Ether directly to an external address
+    function send_amt(address payable toAddress, uint256 amount) public payable returns (string memory) { 
+        require(user_account[msg.sender] > amount, "Insufficient balance in Bank account"); 
+        require(user_exists[msg.sender] == true, "Account is not created"); 
+        require(amount > 0, "Amount should be more than zero"); 
+        
+        user_account[msg.sender] = user_account[msg.sender] - amount; 
+        toAddress.transfer(amount); 
+        return "Transfer Success"; 
+    } 
+    
+    // Function to check the user's account balance
+    function user_balance() public view returns (uint256) { 
+        return user_account[msg.sender]; 
+    } 
+    
+    // Function to check if the user's account exists
+    function account_exist() public view returns (bool) { 
+        return user_exists[msg.sender]; 
+    } 
+}
+
+
+
+
+
+
+pragma solidity ^0.6.0;
+
+contract Student_management {
+    struct Student {
+        int256 stud_id;
+        string name;
+        string department;
+    }
+
+    Student[] Students;
+
+    function add_stud(
+        int256 stud_id,
+        string memory name,
+        string memory department
+    ) public {
+        Student memory stud = Student(stud_id, name, department);
+        Students.push(stud);
+    }
+
+    function getStudent(int256 stud_id)
+        public
+        view
+        returns (string memory, string memory)
+    {
+        for (uint256 i = 0; i < Students.length; i++) {
+            Student memory stud = Students[i];
+            if (stud.stud_id == stud_id) {
+                return (stud.name, stud.department);
+            }
+        }
+        return ("Not Found", "Not Found");
+    }
+}
+
+
+
+
+
+# Importing necessary libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, accuracy_score, precision_score, recall_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+
+# Load the dataset
+df = pd.read_csv(r"C:\Users\Nikita\Desktop\Datasets\emails.csv")
+
+# Display first few rows and check for null values
+df.head()
+df.isnull().sum()
+
+# Drop any rows with null values
+df.dropna(how='any', inplace=True)
+
+# Split dataset into features and labels
+x = df.iloc[:, 1:-1].values  # Selecting all rows, and columns from the second to the last except the last one for features
+y = df.iloc[:, -1].values  # Selecting all rows for the last column as labels
+
+# Split data into training and test sets
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=10)
+
+# Define a function to display results
+def report(classifier):
+    y_pred = classifier.predict(x_test)
+    cm = confusion_matrix(y_test, y_pred)
+    display = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=classifier.classes_)
+    display.plot()
+
+    # Print evaluation metrics
+    print(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
+    print(f"Precision Score: {precision_score(y_test, y_pred, average='weighted')}")
+    print(f"Recall Score: {recall_score(y_test, y_pred, average='weighted')}")
+
+# K-Nearest Neighbors model
+kNN = KNeighborsClassifier(n_neighbors=10)
+kNN.fit(x_train, y_train)
+print("K-Nearest Neighbors (KNN) Model Results:")
+report(kNN)
+
+# Support Vector Machine model
+svm = SVC(gamma='auto', random_state=10)
+svm.fit(x_train, y_train)
+print("Support Vector Machine (SVM) Model Results:")
+report(svm)
+
+
+
+
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, accuracy_score, f1_score
+
+# Load the dataset
+data = pd.read_csv(r'C:\Users\Nikita\Desktop\Datasets\diabetes.csv')
+
+# Display the first few rows of the dataset
+print(data.head())
+
+# Check for any missing values
+print("Missing values per column before replacement:\n", data.isnull().sum())
+
+# Replace zeroes in specific columns with NaN, then fill with the column's mean
+for column in data.columns[1:-3]:  # Adjusted to select specific columns if needed
+    data[column].replace(0, np.NaN, inplace=True)
+    data[column].fillna(round(data[column].mean(skipna=True)), inplace=True)
+
+# Display the first 10 rows after filling missing values
+print(data.head(10))
+
+# Split data into features (X) and labels (Y)
+X = data.iloc[:, :8]  # Features (all rows, columns except the last one)
+Y = data.iloc[:, 8]   # Label (all rows, only the last column)
+
+# Split the data into training and testing sets
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+
+# Initialize and train the K-Nearest Neighbors classifier
+knn = KNeighborsClassifier()
+knn_fit = knn.fit(X_train, Y_train)
+
+# Make predictions on the test set
+knn_pred = knn_fit.predict(X_test)
+
+# Print evaluation metrics
+print("Confusion Matrix:")
+print(confusion_matrix(Y_test, knn_pred))
+
+print("Accuracy Score:", accuracy_score(Y_test, knn_pred))
+print("Recall Score:", recall_score(Y_test, knn_pred))
+print("F1 Score:", f1_score(Y_test, knn_pred))
+print("Precision Score:", precision_score(Y_test, knn_pred))
+print("Error Rate:", 1 - accuracy_score(Y_test, knn_pred))
+
+
+
+
+
+
+
+
+
